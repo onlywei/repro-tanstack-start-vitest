@@ -1,0 +1,12 @@
+{
+  "name": "repro-tanstack-start-vitest",
+  "version": "1.0.0",
+  "description": "Bug reproduction for TanStack Start + Vitest with pnpm workspace (hoist: false)",
+  "scripts": {
+    "test": "pnpm -r test"
+  },
+  "keywords": ["tanstack-start", "vitest", "pnpm", "bug-reproduction"],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.26.2"
+}
