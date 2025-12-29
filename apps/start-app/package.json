@@ -1,6 +1,6 @@
 {
-  "name": "consumer-start",
-  "version": "1.0.0",
+  "name": "start-app",
+  "private": true,
   "description": "TanStack Start app that reproduces the Vitest bug",
   "type": "module",
   "scripts": {
