@@ -1,20 +1,22 @@
 # TanStack Start + Vitest Bug Reproduction
 
-This repository demonstrates a bug that occurs when using TanStack Start with Vitest in a pnpm workspace configured with `hoist: false`.
+This repository demonstrates a bug that occurs when using TanStack Start with Vitest in a pnpm workspace.
 
 ## The Problem
 
-When running Vitest tests in a TanStack Start application within a pnpm workspace (with `hoist: false`), tests fail with the error:
+When running Vitest tests in a TanStack Start application within a pnpm workspace, tests fail with the error:
 
 ```
 Cannot read properties of null (reading 'useState')
 ```
 
-This happens because the TanStack Start Vite plugin applies `optimizeDeps` configuration even in the Vitest environment, which interferes with how React is resolved during test execution when dependencies are not hoisted.
+This happens because the TanStack Start Vite plugin applies `optimizeDeps` configuration even in the Vitest environment, which interferes with how React is resolved during test execution.
+
+**Note:** This bug occurs regardless of whether hoisting is enabled or disabled in pnpm. It affects all pnpm workspace configurations.
 
 ## The Fix
 
-This issue was fixed in [PR #6074](https://github.com/TanStack/router/pull/6074) by conditionally applying the TanStack Start plugin only when NOT in a Vitest environment.
+This issue is fixed by [PR #6074](https://github.com/TanStack/router/pull/6074) by conditionally applying the TanStack Start plugin only when NOT in a Vitest environment.
 
 **Before (causes error):**
 ```typescript
@@ -36,10 +38,10 @@ plugins: [
 
 ```
 .
-├── pnpm-workspace.yaml (with hoist: false)
+├── pnpm-workspace.yaml        # Workspace configuration
 ├── package.json
 ├── apps/
-│   └── consumer-start/        # TanStack Start app
+│   └── start-app/             # TanStack Start app
 │       ├── src/
 │       │   ├── App.tsx        # Imports Button from ui-button
 │       │   └── App.test.tsx   # Test that triggers the bug
@@ -64,7 +66,12 @@ plugins: [
 
 2. **Run the tests (this will fail):**
    ```bash
-   cd apps/consumer-start
+   cd apps/start-app
+   pnpm test
+   ```
+   
+   Or run from the root:
+   ```bash
    pnpm test
    ```
 
@@ -76,7 +83,7 @@ plugins: [
 
 ## How to Apply the Fix
 
-Edit `apps/consumer-start/vite.config.ts` and change:
+Edit `apps/start-app/vite.config.ts` and change:
 
 ```typescript
 plugins: [
@@ -105,12 +112,14 @@ The tests should now pass! ✅
 
 The bug is triggered by this specific combination:
 
-1. **pnpm workspace with `hoist: false`** - Prevents hoisting dependencies to the workspace root, enforcing strict dependency resolution
+1. **pnpm workspace** - Standard pnpm workspace setup (hoisting enabled or disabled)
 2. **TanStack Start plugin applied unconditionally** - Runs `optimizeDeps` in the test environment
 3. **Component from workspace package with React peerDependency** - The package requires React to be provided by the consuming app
 4. **Vitest test that renders the component** - Where the React resolution fails
 
-When `hoist: false` is set and the TanStack Start plugin runs during Vitest execution, React is resolved incorrectly (as `null`) when importing components from workspace packages, causing the "Cannot read properties of null (reading 'useState')" error.
+When the TanStack Start plugin runs during Vitest execution, its `optimizeDeps` configuration interferes with module resolution. React is resolved incorrectly (as `null`) when importing components from workspace packages, causing the "Cannot read properties of null (reading 'useState')" error.
+
+This occurs regardless of pnpm's hoisting configuration, making it a critical issue that affects all pnpm workspace setups with TanStack Start.
 
 ## Related Links
 

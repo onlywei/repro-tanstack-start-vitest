@@ -7,7 +7,12 @@ This document shows how to apply the fix and verify it works.
 The repository is currently configured to reproduce the bug. Running tests will fail:
 
 ```bash
-cd apps/consumer-start
+cd apps/start-app
+pnpm test
+```
+
+Or from the workspace root:
+```bash
 pnpm test
 ```
 
@@ -20,7 +25,7 @@ TypeError: Cannot read properties of null (reading 'useState')
 
 ## Applying the Fix
 
-Edit `apps/consumer-start/vite.config.ts`:
+Edit `apps/start-app/vite.config.ts`:
 
 ### Before (Current - Shows Bug):
 ```typescript
@@ -75,4 +80,8 @@ The conditional `process.env.VITEST !== 'true'` prevents the TanStack Start plug
 4. Tests pass as expected
 
 The plugin is still applied during normal development (`pnpm dev`) and production builds (`pnpm build`), so application functionality is unaffected.
+
+## Important Note
+
+This bug occurs in **all pnpm workspace configurations**, regardless of whether hoisting is enabled or disabled. The issue is specifically with how TanStack Start's `optimizeDeps` configuration interacts with Vitest's module resolution when importing components from workspace packages that have React as a peer dependency.
 
