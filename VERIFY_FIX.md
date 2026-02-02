@@ -64,6 +64,17 @@ Test Files  1 passed (1)
 
 All tests should pass! ✅
 
+## Dilemma: Isomorphic Functions vs Hooks
+
+This repo also includes an isomorphic function test in `src/isomorphicEnv.test.ts` (backed by `src/isomorphicEnv.ts`). That test depends on `createIsomorphicFn()`.
+
+In Vitest, there is a current tradeoff:
+
+- With `tanstackStart()` enabled, `createIsomorphicFn()` resolves (and the isomorphic test passes), but React hook tests fail with `Cannot read properties of null (reading 'useState')`.
+- With `tanstackStart()` disabled, React hook tests pass, but the isomorphic function returns `undefined` and the isomorphic test fails.
+
+This means you can currently validate either the hook tests or the isomorphic function test, but not both at the same time in Vitest.
+
 ## Why This Works
 
 The conditional `process.env.VITEST !== 'true'` prevents the TanStack Start plugin from running during test execution. When the plugin doesn't run in Vitest:

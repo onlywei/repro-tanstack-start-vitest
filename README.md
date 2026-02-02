@@ -16,6 +16,15 @@ This happens because the TanStack Start Vite plugin applies `optimizeDeps` confi
 
 This issue is fixed by [PR #6074](https://github.com/TanStack/router/pull/6074) by conditionally applying the TanStack Start plugin only when NOT in a Vitest environment.
 
+## The Dilemma (Isomorphic Functions vs Hooks)
+
+This repo now includes an isomorphic function test in `src/isomorphicEnv.test.ts` backed by `src/isomorphicEnv.ts` using `createIsomorphicFn()`.
+
+In Vitest, there is currently a tradeoff:
+
+- If `tanstackStart()` runs during tests, `createIsomorphicFn()` resolves and the isomorphic test passes (it resolves to the client implementation in Vitest), but React hook tests fail with `Cannot read properties of null (reading 'useState')`.
+- If `tanstackStart()` is skipped during tests, React hook tests pass, but the isomorphic function resolves to `undefined` in Vitest and the isomorphic test fails.
+
 **Before (causes error):**
 ```typescript
 plugins: [
