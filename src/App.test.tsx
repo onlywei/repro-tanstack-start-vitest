@@ -8,9 +8,8 @@ describe('App', () => {
     expect(screen.getByText('TanStack Start + Vitest Bug Reproduction')).toBeInTheDocument();
   });
 
-  it('renders the button from workspace package', () => {
+  it('renders the button component', () => {
     render(<App />);
     expect(screen.getByRole('button', { name: /test button/i })).toBeInTheDocument();
   });
 });
-

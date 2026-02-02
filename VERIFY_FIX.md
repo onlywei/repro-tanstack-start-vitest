@@ -7,12 +7,6 @@ This document shows how to apply the fix and verify it works.
 The repository is currently configured to reproduce the bug. Running tests will fail:
 
 ```bash
-cd apps/start-app
-pnpm test
-```
-
-Or from the workspace root:
-```bash
 pnpm test
 ```
 
@@ -20,12 +14,12 @@ pnpm test
 ```
 TypeError: Cannot read properties of null (reading 'useState')
     at useState (...)
-    at Button (/Users/.../packages/ui-button/src/Button.tsx:9:29)
+    at Button (/Users/.../src/components/Button.tsx:9:29)
 ```
 
 ## Applying the Fix
 
-Edit `apps/start-app/vite.config.ts`:
+Edit `vite.config.ts`:
 
 ### Before (Current - Shows Bug):
 ```typescript
@@ -62,7 +56,7 @@ pnpm test
 ✓ src/App.test.tsx (2)
   ✓ App (2)
     ✓ renders the app component
-    ✓ renders the button from workspace package
+    ✓ renders the button component
 
 Test Files  1 passed (1)
      Tests  2 passed (2)
@@ -75,13 +69,12 @@ All tests should pass! ✅
 The conditional `process.env.VITEST !== 'true'` prevents the TanStack Start plugin from running during test execution. When the plugin doesn't run in Vitest:
 
 1. It doesn't apply `optimizeDeps` configuration
-2. React is resolved correctly from the app's dependencies
-3. Components from workspace packages can use React hooks normally
+2. React is resolved correctly during tests
+3. Components that use React hooks render normally
 4. Tests pass as expected
 
 The plugin is still applied during normal development (`pnpm dev`) and production builds (`pnpm build`), so application functionality is unaffected.
 
 ## Important Note
 
-This bug occurs in **all pnpm workspace configurations**, regardless of whether hoisting is enabled or disabled. The issue is specifically with how TanStack Start's `optimizeDeps` configuration interacts with Vitest's module resolution when importing components from workspace packages that have React as a peer dependency.
-
+This bug occurs in **single-package setups as well**, not just pnpm workspaces. The issue is specifically with how TanStack Start's `optimizeDeps` configuration interacts with Vitest's module resolution when React is resolved during tests.

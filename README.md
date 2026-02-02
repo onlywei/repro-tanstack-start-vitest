@@ -1,18 +1,16 @@
 # TanStack Start + Vitest Bug Reproduction
 
-This repository demonstrates a bug that occurs when using TanStack Start with Vitest in a pnpm workspace.
+This repository demonstrates a bug that occurs when using TanStack Start with Vitest, even in a single-package project.
 
 ## The Problem
 
-When running Vitest tests in a TanStack Start application within a pnpm workspace, tests fail with the error:
+When running Vitest tests in a TanStack Start application, tests fail with the error:
 
 ```
 Cannot read properties of null (reading 'useState')
 ```
 
-This happens because the TanStack Start Vite plugin applies `optimizeDeps` configuration even in the Vitest environment, which interferes with how React is resolved during test execution.
-
-**Note:** This bug occurs regardless of whether hoisting is enabled or disabled in pnpm. It affects all pnpm workspace configurations.
+This happens because the TanStack Start Vite plugin applies `optimizeDeps` configuration in the Vitest environment, which interferes with how React is resolved during test execution.
 
 ## The Fix
 
@@ -38,24 +36,24 @@ plugins: [
 
 ```
 .
-├── pnpm-workspace.yaml        # Workspace configuration
 ├── package.json
-├── apps/
-│   └── start-app/             # TanStack Start app
-│       ├── src/
-│       │   ├── App.tsx        # Imports Button from ui-button
-│       │   └── App.test.tsx   # Test that triggers the bug
-│       └── vite.config.ts     # Without the fix
-└── packages/
-    └── ui-button/             # Simple UI package
-        └── src/
-            └── Button.tsx     # Uses useState hook
+├── vite.config.ts
+├── tsconfig.json
+└── src/
+    ├── App.tsx
+    ├── App.test.tsx
+    ├── components/
+    │   └── Button.tsx
+    ├── routes/
+    │   └── __root.tsx
+    ├── routeTree.gen.ts
+    └── router.tsx
 ```
 
 ## Prerequisites
 
 - Node.js 18 or newer
-- pnpm (this repo uses pnpm@10.26.2)
+- pnpm (this repo uses pnpm@10.28.2)
 
 ## Reproduction Steps
 
@@ -65,12 +63,6 @@ plugins: [
    ```
 
 2. **Run the tests (this will fail):**
-   ```bash
-   cd apps/start-app
-   pnpm test
-   ```
-   
-   Or run from the root:
    ```bash
    pnpm test
    ```
@@ -83,7 +75,7 @@ plugins: [
 
 ## How to Apply the Fix
 
-Edit `apps/start-app/vite.config.ts` and change:
+Edit `vite.config.ts` and change:
 
 ```typescript
 plugins: [
@@ -112,18 +104,14 @@ The tests should now pass! ✅
 
 The bug is triggered by this specific combination:
 
-1. **pnpm workspace** - Standard pnpm workspace setup (hoisting enabled or disabled)
-2. **TanStack Start plugin applied unconditionally** - Runs `optimizeDeps` in the test environment
-3. **Component from workspace package with React peerDependency** - The package requires React to be provided by the consuming app
-4. **Vitest test that renders the component** - Where the React resolution fails
+1. **TanStack Start plugin applied unconditionally** - Runs `optimizeDeps` in the test environment
+2. **Vitest test that renders a component using hooks** - React resolves incorrectly (as `null`)
+3. **React hook usage** - Causes the "Cannot read properties of null (reading 'useState')" error
 
-When the TanStack Start plugin runs during Vitest execution, its `optimizeDeps` configuration interferes with module resolution. React is resolved incorrectly (as `null`) when importing components from workspace packages, causing the "Cannot read properties of null (reading 'useState')" error.
-
-This occurs regardless of pnpm's hoisting configuration, making it a critical issue that affects all pnpm workspace setups with TanStack Start.
+When the TanStack Start plugin runs during Vitest execution, its `optimizeDeps` configuration interferes with module resolution. React is resolved incorrectly (as `null`) when rendering components that use hooks, causing the failure.
 
 ## Related Links
 
 - [PR #6074: fix(react-start): Do not optimizeDeps in VITEST environment](https://github.com/TanStack/router/pull/6074)
 - [TanStack Router Documentation](https://tanstack.com/router)
 - [Vitest Documentation](https://vitest.dev/)
-- [pnpm Workspaces](https://pnpm.io/workspaces)

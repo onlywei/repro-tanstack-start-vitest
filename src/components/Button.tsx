@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 export interface ButtonProps {
   label?: string;
   onClick?: () => void;
 }
 
-export function Button({ label = 'Click me', onClick }: ButtonProps) {
+export function Button({ label = "Click me", onClick }: ButtonProps) {
   const [count, setCount] = useState(0);
 
-  const handleClick = () => {
+  function handleClick() {
     setCount(count + 1);
     onClick?.();
-  };
+  }
 
   return (
     <button onClick={handleClick}>
@@ -19,4 +19,3 @@ export function Button({ label = 'Click me', onClick }: ButtonProps) {
     </button>
   );
 }
-
